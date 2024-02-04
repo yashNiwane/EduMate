@@ -3,9 +3,10 @@ from openai import OpenAI
 
 app = Flask(__name__)
 
+# Initialize OpenAI client
+openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
 
-openai_client = OpenAI(base_url="http://localhost:1234/v1")
-
+# Chat history
 chat_history = [
     {"role": "system", "content": "You are an intelligent assistant. You always provide well-reasoned answers that are both correct and helpful."},
     {"role": "user", "content": "Hello, introduce yourself to someone opening this program for the first time. Be concise."},
@@ -19,9 +20,10 @@ def index():
 def send_message():
     user_message = request.form['user_message']
 
-    
+    # Display user message in the chat history
     chat_history.append({"role": "user", "content": user_message})
 
+    # Generate assistant's response using OpenAI
     completion = openai_client.chat.completions.create(
         model="local-model",
         messages=chat_history,
@@ -35,10 +37,14 @@ def send_message():
         if chunk.choices[0].delta.content:
             new_message["content"] += chunk.choices[0].delta.content
 
-    
+    # Display assistant's response in the chat history
     chat_history.append(new_message)
 
     return jsonify({"assistant_response": new_message["content"]})
+
+@app.route('/get_chat_history', methods=['GET'])
+def get_chat_history():
+    return jsonify({"chat_history": chat_history})
 
 if __name__ == '__main__':
     app.run(debug=True)
