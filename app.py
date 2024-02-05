@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
+import pyttsx3
 
 app = Flask(__name__)
 
 # Initialize OpenAI client
 openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
 
 # Chat history
 chat_history = [
@@ -39,6 +43,10 @@ def send_message():
 
     # Display assistant's response in the chat history
     chat_history.append(new_message)
+
+    # Output the assistant's response vocally
+    engine.say(new_message["content"])
+    engine.runAndWait()
 
     return jsonify({"assistant_response": new_message["content"]})
 
