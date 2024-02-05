@@ -22,10 +22,14 @@ This project leverages AI technology to create a personalized education assistan
 
 ## Usage
 
-1. **Installation:**
+1. **Setup:**
+   ```bash
+   git clone https://github.com/yashNiwane/EduMate
+
+2. **Installation:**
    ```bash
    pip install -r requirements.txt
 
-2. **Run:**
+3. **Run:**
    ```bash
    python app.py
