@@ -1,14 +1,12 @@
+import threading
+import pyttsx3
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
-import pyttsx3
 
 app = Flask(__name__)
 
 # Initialize OpenAI client
 openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
-
-# Initialize text-to-speech engine
-engine = pyttsx3.init()
 
 # Chat history
 chat_history = [
@@ -16,12 +14,32 @@ chat_history = [
     {"role": "user", "content": "Hello, introduce yourself to someone opening this program for the first time. Be concise."},
 ]
 
+# Initialize pyttsx3 engine
+engine = pyttsx3.init()
+
+# Flag to stop TTS
+stop_tts = threading.Event()
+
+def tts_thread(message):
+    global stop_tts
+    engine.say(message)
+    engine.runAndWait()
+    stop_tts.clear()
+
+def start_tts(message):
+    global stop_tts
+    stop_tts.set()
+    thread = threading.Thread(target=tts_thread, args=(message,))
+    thread.start()
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
+    global stop_tts
+
     user_message = request.form['user_message']
 
     # Display user message in the chat history
@@ -35,24 +53,23 @@ def send_message():
         stream=True,
     )
 
-    new_message = {"role": "assistant", "content": ""}
+    new_message = {"role": "assistant", "content": "", "stop_tts": False}
 
     for chunk in completion:
         if chunk.choices[0].delta.content:
             new_message["content"] += chunk.choices[0].delta.content
 
-    # Display assistant's response in the chat history
+    # Save the assistant's response in the chat history
     chat_history.append(new_message)
 
-    # Output the assistant's response vocally
-    engine.say(new_message["content"])
-    engine.runAndWait()
+    # Stop the current TTS
+    stop_tts.set()
 
-    return jsonify({"assistant_response": new_message["content"]})
+    # Start new TTS if there is a new and non-empty assistant response
+    if new_message["content"] and not stop_tts.is_set():
+        start_tts(new_message["content"])
 
-@app.route('/get_chat_history', methods=['GET'])
-def get_chat_history():
-    return jsonify({"chat_history": chat_history})
+    return jsonify({"assistant_response": new_message["content"], "stop_tts": new_message["stop_tts"]})
 
 if __name__ == '__main__':
     app.run(debug=True)
