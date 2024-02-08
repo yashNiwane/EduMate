@@ -46,9 +46,10 @@ def send_message():
 @app.route('/save-message', methods=['POST'])
 def save_message():
     content = request.form['content']
-    with open('templates/messages.txt', 'a') as file:
-        file.write(content + '\n')
+    with open('templates/messages.html', 'a') as file:
+        file.write(content + '<br>')  # Assuming messages are appended line by line
     return 'Message saved successfully!'
+
 
 if __name__ == '__main__':
     app.run(debug=True)

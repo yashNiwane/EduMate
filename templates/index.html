@@ -79,13 +79,17 @@
         }
 
         function saveMessage(content) {
+            // Convert the message to HTML markup
+            var htmlContent = convertToHTML(content);
+        
+            // Make a POST request to save the HTML content
             fetch('/save-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: new URLSearchParams({
-                    'content': content
+                    'content': htmlContent
                 }),
             })
             .then(response => {
@@ -100,7 +104,17 @@
             });
         }
         
-
+        function convertToHTML(content) {
+            // Split the content into paragraphs based on line breaks
+            const paragraphs = content.split('\n');
+        
+            // Convert each paragraph to HTML <p> tags
+            const htmlContent = paragraphs.map(paragraph => `<p>${paragraph}</p>`);
+        
+            // Join the HTML paragraphs into a single string
+            return htmlContent.join('');
+        }
+        
         // Additional JavaScript functions and event handlers as needed
     </script>
     
