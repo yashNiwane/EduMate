@@ -42,5 +42,13 @@ def send_message():
 
     return jsonify({"assistant_response": new_message["content"]})
 
+    
+@app.route('/save-message', methods=['POST'])
+def save_message():
+    content = request.form['content']
+    with open('templates/messages.txt', 'a') as file:
+        file.write(content + '\n')
+    return 'Message saved successfully!'
+
 if __name__ == '__main__':
     app.run(debug=True)
