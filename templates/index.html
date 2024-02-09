@@ -9,7 +9,7 @@
 </head>
 <body class="bg-gray-100">
     
-    <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg" style="background-color: black;">
+    <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg">
         <div id="chat-display" class="p-8 border rounded-lg min-h-48 overflow-y-scroll bg-gray-200">
             <!-- Display chat history -->
             {% for entry in chat_history %}
@@ -31,6 +31,13 @@
     <script>
         var ttsPlaying = false;
         var engine = new SpeechSynthesisUtterance();
+    
+        // Set the voice properties for a smooth female voice
+        var voices = window.speechSynthesis.getVoices();
+        var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes('en'));
+        engine.voice = femaleVoice;
+        engine.pitch = 1.2;  // Adjust pitch for smoother female voice
+        engine.rate = 1.0;   // Adjust rate for the speed of speech
     
         function sendMessage() {
             var userMessage = document.getElementById('user-input').value;
@@ -106,8 +113,5 @@
             chatDisplay.appendChild(messageDiv);
         }
     </script>
-    
-    
-    
 </body>
 </html>
