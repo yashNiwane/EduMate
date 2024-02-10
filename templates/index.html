@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100">
-    
+
     <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg">
         <div id="chat-display" class="p-8 border rounded-lg min-h-48 overflow-y-scroll bg-gray-200">
             <!-- Display chat history -->
             {% for entry in chat_history %}
-                <div class="{{ entry.role }} mb-2 p-2 rounded-md">{{ entry.content }}</div>
+            <div class="{{ entry.role }} mb-2 p-2 rounded-md">{{ entry.content }}</div>
             {% endfor %}
         </div>
 
@@ -21,31 +23,22 @@
         <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image">
 
         <!-- Add image to display while speaking -->
-        <img id="speaking-image" src="{{url_for('static', filename='talking.gif')}}" alt="Speaking Image" class="hidden">
+        <img id="speaking-image" src="{{url_for('static', filename='talking.gif')}}" alt="Speaking Image"
+            class="hidden">
 
-        <input type="text" id="user-input" placeholder="Type your message..." class="w-full p-2 border rounded-md mt-4">
-        <button onclick="sendMessage()" class="bg-green-500 hover:bg-green-600 text-white p-2 mt-2 rounded-md">Send</button>
+        <input type="text" id="user-input" placeholder="Type your message..."
+            class="w-full p-2 border rounded-md mt-4">
+        <button onclick="sendMessage()"
+            class="bg-green-500 hover:bg-green-600 text-white p-2 mt-2 rounded-md">Send</button>
     </div>
-    
 
     <script>
         var ttsPlaying = false;
-        var engine = new SpeechSynthesisUtterance();
-    
-        // Set the voice properties for a smooth female voice
-        var voices = window.speechSynthesis.getVoices();
-        var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes('en'));
-        engine.voice = femaleVoice;
-        engine.pitch = 1.2;  // Adjust pitch for smoother female voice
-        engine.rate = 1.0;   // Adjust rate for the speed of speech
-    
+
         function sendMessage() {
             var userMessage = document.getElementById('user-input').value;
-    
-            // Display user message in the chat
             displayMessage('user', userMessage);
-    
-            // Make a POST request to the Flask server
+
             fetch('/send_message', {
                     method: 'POST',
                     headers: {
@@ -56,55 +49,36 @@
                 .then(response => response.json())
                 .then(data => {
                     var assistantResponse = data.assistant_response;
-    
-                    // Display the assistant's response in the chat
                     displayMessage('assistant', assistantResponse);
-    
-                    // Toggle visibility of images
                     toggleImagesVisibility(true);
-    
-                    // Stop the current speech
+
                     if (ttsPlaying) {
-                        speechSynthesis.cancel();
-                        ttsPlaying = false;
+                        stopTTS();
                     }
-    
-                    // Start new speech
-                    engine.text = assistantResponse;
-                    speechSynthesis.speak(engine);
-                    ttsPlaying = true;
-    
-                    // Set up event listener for TTS completion
-                    engine.onend = function () {
-                        // Toggle visibility of images to show the default image
-                        toggleImagesVisibility(false);
-                        ttsPlaying = false;
-                    };
+
+                    speakWithGTTS(assistantResponse);
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     displayMessage('system', 'An error occurred while sending the message.');
                 });
-    
-            // Clear the input field
+
             document.getElementById('user-input').value = '';
         }
-    
+
         function toggleImagesVisibility(speaking) {
             var defaultImage = document.getElementById('default-image');
             var speakingImage = document.getElementById('speaking-image');
-    
+
             if (speaking) {
-                // If speaking, hide default image and show speaking image
                 defaultImage.classList.add('hidden');
                 speakingImage.classList.remove('hidden');
             } else {
-                // If not speaking, show default image and hide speaking image
                 defaultImage.classList.remove('hidden');
                 speakingImage.classList.add('hidden');
             }
         }
-    
+
         function displayMessage(role, content) {
             var chatDisplay = document.getElementById('chat-display');
             var messageDiv = document.createElement('div');
@@ -112,6 +86,42 @@
             messageDiv.textContent = content;
             chatDisplay.appendChild(messageDiv);
         }
+
+        function stopTTS() {
+            ttsPlaying = false;
+            speechSynthesis.cancel();
+        }
+
+        function speakWithGTTS(text) {
+            var gttsSpeech = new SpeechSynthesisUtterance();
+            gttsSpeech.text = text;
+
+            // Fetch the available voices
+            var voices = window.speechSynthesis.getVoices();
+
+            // Find a female voice with English language
+            var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
+                'en'));
+
+            // Set the selected voice
+            gttsSpeech.voice = femaleVoice;
+
+            // Set pitch and rate for a softer and more natural voice
+            gttsSpeech.pitch = 1.0;
+            gttsSpeech.rate = 0.9;
+
+            // Speak the message
+            speechSynthesis.speak(gttsSpeech);
+            ttsPlaying = true;
+
+            // Handle the end event to toggle image visibility
+            gttsSpeech.onend = function () {
+                toggleImagesVisibility(false);
+                ttsPlaying = false;
+            };
+        }
     </script>
+
 </body>
+
 </html>
