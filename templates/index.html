@@ -11,7 +11,7 @@
 
 <body class="bg-gray-100">
 
-    <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg">
+    <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg" style="background-color: gray;">
         <div id="chat-display" class="p-8 border rounded-lg min-h-48 overflow-y-scroll bg-gray-200">
             <!-- Display chat history -->
             {% for entry in chat_history %}
@@ -34,6 +34,34 @@
 
     <script>
         var ttsPlaying = false;
+        function speakWithGTTS(text) {
+        var gttsSpeech = new SpeechSynthesisUtterance();
+        gttsSpeech.text = text;
+
+        // Fetch the available voices
+        var voices = window.speechSynthesis.getVoices();
+
+        // Find a female voice with English language
+        var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
+            'en'));
+
+        // If a female voice is not found, use the default voice
+        gttsSpeech.voice = femaleVoice || voices[0];
+
+        // Set pitch and rate for a softer and more natural voice
+        gttsSpeech.pitch = 1.0;
+        gttsSpeech.rate = 0.9;
+
+        // Speak the message
+        speechSynthesis.speak(gttsSpeech);
+        ttsPlaying = true;
+
+        // Handle the end event to toggle image visibility
+        gttsSpeech.onend = function () {
+            toggleImagesVisibility(false);
+            ttsPlaying = false;
+        };
+    }
 
         function sendMessage() {
             var userMessage = document.getElementById('user-input').value;
@@ -92,34 +120,7 @@
             speechSynthesis.cancel();
         }
 
-        function speakWithGTTS(text) {
-            var gttsSpeech = new SpeechSynthesisUtterance();
-            gttsSpeech.text = text;
-
-            // Fetch the available voices
-            var voices = window.speechSynthesis.getVoices();
-
-            // Find a female voice with English language
-            var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
-                'en'));
-
-            // Set the selected voice
-            gttsSpeech.voice = femaleVoice;
-
-            // Set pitch and rate for a softer and more natural voice
-            gttsSpeech.pitch = 1.0;
-            gttsSpeech.rate = 0.9;
-
-            // Speak the message
-            speechSynthesis.speak(gttsSpeech);
-            ttsPlaying = true;
-
-            // Handle the end event to toggle image visibility
-            gttsSpeech.onend = function () {
-                toggleImagesVisibility(false);
-                ttsPlaying = false;
-            };
-        }
+       
     </script>
 
 </body>
