@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
+import base64
 
 app = Flask(__name__)
 
@@ -20,8 +21,16 @@ def index():
 def send_message():
     user_message = request.form['user_message']
 
+    # Handle image input
+    image_input = request.files.get('image_input')
+    if image_input:
+        image_data = base64.b64encode(image_input.read()).decode("utf-8")
+        user_message_data = [{"type": "text", "text": user_message}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}]
+    else:
+        user_message_data = [{"type": "text", "text": user_message}]
+
     # Display user message in the chat history
-    chat_history.append({"role": "user", "content": user_message})
+    chat_history.append({"role": "user", "content": user_message_data})
 
     # Generate assistant's response using OpenAI
     completion = openai_client.chat.completions.create(
@@ -42,14 +51,12 @@ def send_message():
 
     return jsonify({"assistant_response": new_message["content"]})
 
-    
 @app.route('/save-message', methods=['POST'])
 def save_message():
     content = request.form['content']
     with open('templates/messages.html', 'a') as file:
         file.write(content + '<br>')  # Assuming messages are appended line by line
     return 'Message saved successfully!'
-
 
 if __name__ == '__main__':
     app.run(debug=True)

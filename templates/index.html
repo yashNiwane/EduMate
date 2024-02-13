@@ -7,120 +7,172 @@
     <title>EduMate</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        #voice-input-button {
+            background: linear-gradient(to right, #aaf, #ccf); /* Gradient with light colors */
+            border: 1px solid #aaf; /* Border color matching the gradient */
+            border-radius: 10%; /* Circular shape */
+        
+            padding: 14px; /* Adjust padding for a circular appearance */
+            cursor: pointer;
+            transition: background 0.3s ease; /* Smooth transition on hover */
+        }
+    
+        #voice-input-button:hover {
+            background: linear-gradient(to right, #77d, #aaf); /* Adjusted gradient on hover */
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100" style="display: flex; flex-wrap: nowrap;">
 
-    <div id="chat-container" class="max-w-2xl mx-auto my-10 p-8 border rounded-lg bg-white shadow-lg" style="background-color: gray;">
-        <div id="chat-display" class="p-8 border rounded-lg min-h-48 overflow-y-scroll bg-gray-200">
+    <div id="chat-container" class="mt-4 ml-4 p-8 border rounded-lg bg-white shadow-lg" style="width: 65%; height: 95vh; display: flex; flex-direction: column; justify-content: space-between;">
+        <div id="chat-display" class="p-8 border rounded-lg overflow-y-scroll bg-gray-200" style="flex-grow: 1;">
             <!-- Display chat history -->
             {% for entry in chat_history %}
-            <div class="{{ entry.role }} mb-2 p-2 rounded-md">{{ entry.content }}</div>
+            <div class="{{ entry.role }} mb-4 p-4 rounded-md">{{ entry.content }}</div>
             {% endfor %}
         </div>
-
+    
+        <div class="flex items-center mt-4 rounded-md justify-between" style="width: 100%; "> <!-- Set width to 100% and max-width to ensure responsiveness -->
+            <input type="text" id="user-input" placeholder="Type your message..."
+                class="p-4 border-none rounded-l-md" style="flex-grow: 1; border: 1px solid grey;"> <!-- Remove border and apply rounded-left to the input -->
+    
+            <div>
+                <button onclick="sendMessage()"
+                    class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button> <!-- Apply rounded-right to the "Send" button -->
+    
+                <!-- Updated voice input button with CSS styles -->
+                <button id="voice-input-button" class="ml-4"onclick="startVoiceInput()">
+                    <i class="fas fa-microphone"></i> <!-- Font Awesome microphone icon -->
+                </button>
+                <input type="file" id="image-input" name="image_input" accept="image/*" style="display: none;">
+            </div>
+        </div>
+    </div>
+    
+        
+    </div>
+    
+    <div class="mt-4 mx-4  border rounded-lg bg-white shadow-lg" style="max-width: 40%;">
         <!-- Add default image -->
-        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image">
-
+        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain;">
+    
         <!-- Add image to display while speaking -->
         <img id="speaking-image" src="{{url_for('static', filename='talking.gif')}}" alt="Speaking Image"
-            class="hidden">
-
-        <input type="text" id="user-input" placeholder="Type your message..."
-            class="w-full p-2 border rounded-md mt-4">
-        <button onclick="sendMessage()"
-            class="bg-green-500 hover:bg-green-600 text-white p-2 mt-2 rounded-md">Send</button>
+            class="hidden" style="width: 120%; height: 120%; object-fit: contain;">
     </div>
+
+
+
+
+
+
+
+
+
 
     <script>
         var ttsPlaying = false;
-        function speakWithGTTS(text) {
-        var gttsSpeech = new SpeechSynthesisUtterance();
-        gttsSpeech.text = text;
 
-        // Fetch the available voices
-        var voices = window.speechSynthesis.getVoices();
+function speakWithGTTS(text) {
+    var gttsSpeech = new SpeechSynthesisUtterance();
+    gttsSpeech.text = text;
 
-        // Find a female voice with English language
-        var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
-            'en'));
+    // Fetch the available voices
+    var voices = window.speechSynthesis.getVoices();
 
-        // If a female voice is not found, use the default voice
-        gttsSpeech.voice = femaleVoice || voices[0];
+    // Find a female voice with English language
+    var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
+        'en'));
 
-        // Set pitch and rate for a softer and more natural voice
-        gttsSpeech.pitch = 1.0;
-        gttsSpeech.rate = 0.9;
+    // If a female voice is not found, use the default voice
+    gttsSpeech.voice = femaleVoice || voices[0];
 
-        // Speak the message
-        speechSynthesis.speak(gttsSpeech);
-        ttsPlaying = true;
+    // Set pitch and rate for a softer and more natural voice
+    gttsSpeech.pitch = 1.0;
+    gttsSpeech.rate = 0.9;
 
-        // Handle the end event to toggle image visibility
-        gttsSpeech.onend = function () {
-            toggleImagesVisibility(false);
-            ttsPlaying = false;
-        };
-    }
+    // Speak the message
+    speechSynthesis.speak(gttsSpeech);
+    ttsPlaying = true;
 
-        function sendMessage() {
-            var userMessage = document.getElementById('user-input').value;
-            displayMessage('user', userMessage);
+    // Handle the end event to toggle image visibility
+    gttsSpeech.onend = function () {
+        toggleImagesVisibility(false);
+        ttsPlaying = false;
+    };
+}
 
-            fetch('/send_message', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'user_message=' + encodeURIComponent(userMessage),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    var assistantResponse = data.assistant_response;
-                    displayMessage('assistant', assistantResponse);
-                    toggleImagesVisibility(true);
+function sendMessage() {
+    var userMessage = document.getElementById('user-input').value;
+    displayMessage('user', userMessage);
 
-                    if (ttsPlaying) {
-                        stopTTS();
-                    }
+    fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'user_message=' + encodeURIComponent(userMessage),
+        })
+        .then(response => response.json())
+        .then(data => {
+            var assistantResponse = data.assistant_response;
+            displayMessage('assistant', assistantResponse);
+            toggleImagesVisibility(true);
 
-                    speakWithGTTS(assistantResponse);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    displayMessage('system', 'An error occurred while sending the message.');
-                });
-
-            document.getElementById('user-input').value = '';
-        }
-
-        function toggleImagesVisibility(speaking) {
-            var defaultImage = document.getElementById('default-image');
-            var speakingImage = document.getElementById('speaking-image');
-
-            if (speaking) {
-                defaultImage.classList.add('hidden');
-                speakingImage.classList.remove('hidden');
-            } else {
-                defaultImage.classList.remove('hidden');
-                speakingImage.classList.add('hidden');
+            if (ttsPlaying) {
+                stopTTS();
             }
-        }
 
-        function displayMessage(role, content) {
-            var chatDisplay = document.getElementById('chat-display');
-            var messageDiv = document.createElement('div');
-            messageDiv.classList.add(role, 'mb-2', 'p-2', 'rounded-md');
-            messageDiv.textContent = content;
-            chatDisplay.appendChild(messageDiv);
-        }
+            speakWithGTTS(assistantResponse);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            displayMessage('system', 'An error occurred while sending the message.');
+        });
 
-        function stopTTS() {
-            ttsPlaying = false;
-            speechSynthesis.cancel();
-        }
+    document.getElementById('user-input').value = '';
+}
 
-       
+function toggleImagesVisibility(speaking) {
+    var defaultImage = document.getElementById('default-image');
+    var speakingImage = document.getElementById('speaking-image');
+
+    if (speaking) {
+        defaultImage.classList.add('hidden');
+        speakingImage.classList.remove('hidden');
+    } else {
+        defaultImage.classList.remove('hidden');
+        speakingImage.classList.add('hidden');
+    }
+}
+
+function displayMessage(role, content) {
+    var chatDisplay = document.getElementById('chat-display');
+    var messageDiv = document.createElement('div');
+    messageDiv.classList.add(role, 'mb-2', 'p-2', 'rounded-md');
+    messageDiv.textContent = content;
+    chatDisplay.appendChild(messageDiv);
+}
+
+function stopTTS() {
+    ttsPlaying = false;
+    speechSynthesis.cancel();
+}
+
+function toggleFileInput() {
+    var fileInput = document.getElementById('image-input');
+    fileInput.click();
+}
+
+document.getElementById('image-input').addEventListener('change', function (event) {
+    var fileName = event.target.files[0].name;
+    document.getElementById('user-input').value = 'Image attached: ' + fileName;
+});
+
     </script>
 
 </body>
