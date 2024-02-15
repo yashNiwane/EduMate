@@ -21,7 +21,6 @@ def index():
 def send_message():
     user_message = request.form['user_message']
 
-
     image_input = request.files.get('image_input')
     if image_input:
         image_data = base64.b64encode(image_input.read()).decode("utf-8")
@@ -29,9 +28,13 @@ def send_message():
     else:
         user_message_data = [{"type": "text", "text": user_message}]
 
-
     chat_history.append({"role": "user", "content": user_message_data})
 
+    # Check if the word "physics" is present in the user's message
+    if 'physics' in user_message.lower():
+        image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/220px-Image_created_with_a_mobile_phone.png"  # replace with your image URL
+    else:
+        image_url = None
 
     completion = openai_client.chat.completions.create(
         model="local-model",
@@ -46,10 +49,9 @@ def send_message():
         if chunk.choices[0].delta.content:
             new_message["content"] += chunk.choices[0].delta.content
 
-
     chat_history.append(new_message)
 
-    return jsonify({"assistant_response": new_message["content"]})
+    return jsonify({"assistant_response": new_message["content"], "image_url": image_url})
 
 
 @app.route('/process_image', methods=['POST'])
