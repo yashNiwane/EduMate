@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 import base64
+import requests
 
 app = Flask(__name__)
+
+API_KEY = 'AIzaSyBdaNS5jEyudUxVHNiKDmb0asGHwM0q948'
+SEARCH_ENGINE_ID = '82c44906c9d09476b'
 
 openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
 
@@ -15,7 +19,19 @@ chat_history = [
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', image_url=None)
+
+@app.route('/search', methods=['POST'])
+def search():
+    query = request.form['query']
+    url = f"https://www.googleapis.com/customsearch/v1?q={query}&cx={SEARCH_ENGINE_ID}&searchType=image&key={API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    if 'items' in data and len(data['items']) > 0:
+        image_url = data['items'][0]['link']
+        return render_template('index.html', image_url=image_url)
+    else:
+        return render_template('index.html', image_url=None)
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
@@ -32,7 +48,7 @@ def send_message():
 
     # Check if the word "physics" is present in the user's message
     if 'physics' in user_message.lower():
-        image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/220px-Image_created_with_a_mobile_phone.png"  # replace with your image URL
+        image_url = "https://images.theengineeringprojects.com/image/webp/2021/03/What-is-Physics.jpg.webp?ssl=1"    
     else:
         image_url = None
 
@@ -84,10 +100,6 @@ def process_image():
             max_tokens=1000,
         )
         return jsonify({"result": "Image processed successfully"})
-
-
-
-
 
 
 @app.route('/save-message', methods=['POST'])

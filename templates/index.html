@@ -37,9 +37,8 @@
 
 <body class="bg-gray-100" style="display: flex; flex-wrap: nowrap;">
 
-    <div id="image-container" class="mt-4 mx-4 border rounded-lg bg-white shadow-lg" style="max-width: 40%;"></div>
-
-
+    
+    
     <div id="chat-container" class="mt-4 ml-4 p-8 border rounded-lg bg-white shadow-lg" style="width: 65%; height: 95vh; display: flex; flex-direction: column; justify-content: space-between;">
         <div id="chat-display" class="p-8 border rounded-lg overflow-y-scroll bg-gray-200" style="flex-grow: 1;">
             <!-- Display chat history -->
@@ -47,29 +46,33 @@
             <div class="{{ entry.role }} mb-4 p-4 rounded-md">{{ entry.content }}</div>
             {% endfor %}
         </div>
-    
+        
         <div class="flex items-center mt-4 rounded-md justify-between" style="width: 100%; "> <!-- Set width to 100% and max-width to ensure responsiveness -->
-            <input type="text" id="user-input" placeholder="Type your message..."
-                class="p-4 border-none rounded-l-md" style="flex-grow: 1; border: 1px solid grey;"> <!-- Remove border and apply rounded-left to the input -->
-    
+            <input type="text" id="user-input" name="query" placeholder="Type your message..."
+            class="p-4 border-none rounded-l-md" style="flex-grow: 1; border: 1px solid grey;"> <!-- Remove border and apply rounded-left to the input -->
+            
             <div>
                 <button onclick="sendMessage()"
-                    class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button> <!-- Apply rounded-right to the "Send" button -->
-    
+                class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button> <!-- Apply rounded-right to the "Send" button -->
+                
                 <!-- Updated voice input button with CSS styles -->
-                <button id="voice-input-button" class="ml-4"onclick="startVoiceInput()">
-                    <i class="fas fa-microphone"></i> <!-- Font Awesome microphone icon -->
-                </button>
+                <label class="mt-4 ml-2">
+                    <input type="checkbox" id="voice-input-checkbox" onchange="toggleVoiceInput()"> Enable Voice Input
+                </label>
                 
             </div>
         </div>
     </div>
     
-        
-    </div>
     
-    <div class="mt-4 mx-4  border rounded-lg bg-white shadow-lg" style="max-width: 40%;">
-        <!-- Add default image -->
+</div>
+
+<div class="mt-4 mx-4  border rounded-lg bg-white shadow-lg" style="max-width: 40%;">
+    <div id="image-container" class="mt-4 mx-4 border rounded-lg bg-white shadow-lg" ></div>
+    <!-- Add default image -->
+    {% if image_url %}
+    <img src="{{ image_url }}" alt="Search Result">
+    {% endif %}
         <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain;">
     
         <!-- Add image to display while speaking -->
@@ -87,6 +90,15 @@
 
     <script>
         var ttsPlaying = false;
+        var voiceInputEnabled = false;
+        var recognition = new webkitSpeechRecognition();
+
+        recognition.onresult = function (event) {
+            var userMessage = event.results[0][0].transcript;
+            document.getElementById('user-input').value = userMessage;
+            sendMessage();
+        };
+
 
 function speakWithGTTS(text) {
     var gttsSpeech = new SpeechSynthesisUtterance();
@@ -120,6 +132,9 @@ function speakWithGTTS(text) {
 function sendMessage() {
     var userMessage = document.getElementById('user-input').value;
     displayMessage('user', userMessage);
+    if (voiceInputEnabled) {
+                startVoiceInput();
+            }
 
     fetch('/send_message', {
             method: 'POST',
@@ -162,6 +177,7 @@ function displayImage(imageUrl) {
 }
 
 
+
 function toggleImagesVisibility(speaking) {
     var defaultImage = document.getElementById('default-image');
     var speakingImage = document.getElementById('speaking-image');
@@ -183,6 +199,28 @@ function displayMessage(role, content) {
     chatDisplay.appendChild(messageDiv);
 }
 
+
+
+function toggleVoiceInput() {
+            voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
+            if (voiceInputEnabled) {
+                startVoiceInput();
+            } else {
+                stopVoiceInput();
+            }
+        }
+
+
+        function startVoiceInput() {
+            recognition.start();
+        }
+
+        function stopVoiceInput() {
+            recognition.stop();
+        }
+
+
+
 function stopTTS() {
     ttsPlaying = false;
     speechSynthesis.cancel();
@@ -203,6 +241,5 @@ document.getElementById('image-input').addEventListener('change', function (even
 </body>
 
 </html>
-
 
 
