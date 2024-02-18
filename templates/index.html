@@ -10,75 +10,80 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        #voice-input-button {
-            background: linear-gradient(to right, #aaf, #ccf); /* Gradient with light colors */
-            border: 1px solid #aaf; /* Border color matching the gradient */
-            border-radius: 10%; /* Circular shape */
-        
-            padding: 14px; /* Adjust padding for a circular appearance */
-            cursor: pointer;
-            transition: background 0.3s ease; /* Smooth transition on hover */
-        }
-    
-        #voice-input-button:hover {
-            background: linear-gradient(to right, #77d, #aaf); /* Adjusted gradient on hover */
-        }
+      #voice-input-checkbox {
+  /* Hide the default checkbox appearance */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 
+  /* Style the button */
+  width: 40px;  /* Adjust width as needed */
+  height: 40px; /* Adjust height as needed */
+  border: 2px solid #ccc;
+  border-radius: 50%; /* Make it circular */
+  background-color: #fff;
+  cursor: pointer;
 
+  /* Add a microphone icon */
+  background-image: url("microphone-icon.png"); /* Replace with your icon path */
+  background-repeat: no-repeat;
+  background-position: center;
 
+  /* Transition for smooth hover effect */
+  transition: background-color 0.2s ease-in-out;
+}
 
+#voice-input-checkbox:hover {
+  background-color: #ddd; /* Highlight on hover */
+}
 
+#voice-input-checkbox:checked {
+  /* Optional: Style for checked state */
+  background-color: #008000; /* Green for active state */
+}
 
-
-
-        
     </style>
 </head>
 
 <body class="bg-gray-100" style="display: flex; flex-wrap: nowrap;">
-
-    
-    
-    <div id="chat-container" class="mt-4 ml-4 p-8 border rounded-lg bg-white shadow-lg" style="width: 65%; height: 95vh; display: flex; flex-direction: column; justify-content: space-between;">
+    <div id="chat-container" class="mt-4 ml-4 p-8 border rounded-lg bg-white shadow-lg" style="width: 115%; height: 95vh; display: flex; flex-direction: column; justify-content: space-between;">
         <div id="chat-display" class="p-8 border rounded-lg overflow-y-scroll bg-gray-200" style="flex-grow: 1;">
-            <!-- Display chat history -->
+            
             {% for entry in chat_history %}
             <div class="{{ entry.role }} mb-4 p-4 rounded-md">{{ entry.content }}</div>
             {% endfor %}
         </div>
         
-        <div class="flex items-center mt-4 rounded-md justify-between" style="width: 100%; "> <!-- Set width to 100% and max-width to ensure responsiveness -->
+        <div class="flex items-center mt-4 rounded-md justify-between" style="width: 100%; "> 
             <input type="text" id="user-input" name="query" placeholder="Type your message..."
-            class="p-4 border-none rounded-l-md" style="flex-grow: 1; border: 1px solid grey;"> <!-- Remove border and apply rounded-left to the input -->
+            class="p-4 border-none rounded-l-md" style="flex-grow: 1; border: 1px solid grey;"> 
             
             <div>
                 <button onclick="sendMessage()"
-                class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button> <!-- Apply rounded-right to the "Send" button -->
+                class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button>
                 
-                <!-- Updated voice input button with CSS styles -->
-                <label class="mt-4 ml-2">
-                    <input type="checkbox" id="voice-input-checkbox" onchange="toggleVoiceInput()"> Enable Voice Input
-                </label>
-                
+               
+
             </div>
+            <div><input type="checkbox" style="margin-left: 5px;" id="voice-input-checkbox" onchange="toggleVoiceInput()"></div>
         </div>
     </div>
     
     
 </div>
 
-<div class="mt-4 mx-4  border rounded-lg bg-white shadow-lg" style="max-width: 40%;">
+<div class="mt-4 mx-4  border rounded-lg bg-white shadow-lg" style="width:100%">
     <div id="image-container" class="mt-4 mx-4 border rounded-lg bg-white shadow-lg" ></div>
-    <!-- Add default image -->
+    
     {% if image_url %}
     <img src="{{ image_url }}" alt="Search Result">
     {% endif %}
-        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain;">
+        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 400px; right: -30%; top: 40%">
     
-        <!-- Add image to display while speaking -->
         <img id="speaking-image" src="{{url_for('static', filename='talking.gif')}}" alt="Speaking Image"
-            class="hidden" style="width: 120%; height: 120%; object-fit: contain;">
+            class="hidden" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 400px; right: -30%; top: 40%">
     </div>
+    
 
 
 
@@ -104,25 +109,21 @@ function speakWithGTTS(text) {
     var gttsSpeech = new SpeechSynthesisUtterance();
     gttsSpeech.text = text;
 
-    // Fetch the available voices
     var voices = window.speechSynthesis.getVoices();
 
-    // Find a female voice with English language
     var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
         'en'));
 
-    // If a female voice is not found, use the default voice
     gttsSpeech.voice = femaleVoice || voices[0];
 
-    // Set pitch and rate for a softer and more natural voice
     gttsSpeech.pitch = 1.0;
     gttsSpeech.rate = 0.9;
 
-    // Speak the message
+
     speechSynthesis.speak(gttsSpeech);
     ttsPlaying = true;
 
-    // Handle the end event to toggle image visibility
+
     gttsSpeech.onend = function () {
         toggleImagesVisibility(false);
         ttsPlaying = false;
@@ -148,10 +149,9 @@ function sendMessage() {
             var assistantResponse = data.assistant_response;
             displayMessage('assistant', assistantResponse);
 
-            // Check if an image URL is provided
             var imageUrl = data.image_url;
             if (imageUrl) {
-                // Display the image
+ 
                 displayImage(imageUrl);
             }
 
