@@ -21,17 +21,7 @@ chat_history = [
 def index():
     return render_template('index.html', image_url=None)
 
-@app.route('/search', methods=['POST'])
-def search():
-    query = request.form['query']
-    url = f"https://www.googleapis.com/customsearch/v1?q={query}&cx={SEARCH_ENGINE_ID}&searchType=image&key={API_KEY}"
-    response = requests.get(url)
-    data = response.json()
-    if 'items' in data and len(data['items']) > 0:
-        image_url = data['items'][0]['link']
-        return render_template('index.html', image_url=image_url)
-    else:
-        return render_template('index.html', image_url=None)
+
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
@@ -45,12 +35,12 @@ def send_message():
         user_message_data = [{"type": "text", "text": user_message}]
 
     chat_history.append({"role": "user", "content": user_message_data})
-
-    # Check if the word "physics" is present in the user's message
-    if 'physics' in user_message.lower():
-        image_url = "https://images.theengineeringprojects.com/image/webp/2021/03/What-is-Physics.jpg.webp?ssl=1"    
+    if user_message.strip():  # Check if user's message contains any non-empty string
+        query = user_message.strip()  # Extract query from user's message
+        image_url = perform_image_search(query)
     else:
         image_url = None
+    
 
     completion = openai_client.chat.completions.create(
         model="local-model",
@@ -68,6 +58,15 @@ def send_message():
     chat_history.append(new_message)
 
     return jsonify({"assistant_response": new_message["content"], "image_url": image_url})
+def perform_image_search(query):
+    url = f"https://www.googleapis.com/customsearch/v1?q={query}&cx={SEARCH_ENGINE_ID}&searchType=image&key={API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    if 'items' in data and len(data['items']) > 0:
+        image_url = data['items'][0]['link']
+        return image_url
+    else:
+        return None
 
 
 @app.route('/process_image', methods=['POST'])
