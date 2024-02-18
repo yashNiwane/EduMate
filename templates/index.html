@@ -42,6 +42,16 @@
   background-color: #008000; /* Green for active state */
 }
 
+#pushToTalk {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+
     </style>
 </head>
 
@@ -65,7 +75,9 @@
                
 
             </div>
-            <div><input type="checkbox" style="margin-left: 5px;" id="voice-input-checkbox" onchange="toggleVoiceInput()"></div>
+            <div>
+                <button id="pushToTalk">mic</button>
+                <input type="checkbox" style="margin-left: 5px;" id="voice-input-checkbox" onchange="toggleVoiceInput()"></div>
         </div>
     </div>
     
@@ -104,39 +116,91 @@
             sendMessage();
         };
 
-
 function speakWithGTTS(text) {
     var gttsSpeech = new SpeechSynthesisUtterance();
     gttsSpeech.text = text;
 
+    // Fetch the available voices
     var voices = window.speechSynthesis.getVoices();
 
+    // Find a female voice with English language
     var femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female') && voice.lang.includes(
         'en'));
 
+    // If a female voice is not found, use the default voice
     gttsSpeech.voice = femaleVoice || voices[0];
 
+    // Set pitch and rate for a softer and more natural voice
     gttsSpeech.pitch = 1.0;
     gttsSpeech.rate = 0.9;
 
-
+    // Speak the message
     speechSynthesis.speak(gttsSpeech);
     ttsPlaying = true;
 
-
+    // Handle the end event to toggle image visibility
     gttsSpeech.onend = function () {
         toggleImagesVisibility(false);
         ttsPlaying = false;
     };
 }
+function sendToAssistant(message) {
+    fetch('/send_message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'user_message=' + encodeURIComponent(message),
+    })
+    .then(response => response.json())
+    .then(data => {
+        var assistantResponse = data.assistant_response;
+        displayMessage('assistant', assistantResponse);
+
+        // Check if an image URL is provided
+        var imageUrl = data.image_url;
+        if (imageUrl) {
+            // Display the image
+            displayImage(imageUrl);
+        }
+
+        toggleImagesVisibility(true);
+
+        if (ttsPlaying) {
+            stopTTS();
+        }
+
+        speakWithGTTS(assistantResponse);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        displayMessage('system', 'An error occurred while sending the message.');
+    });
+
+    document.getElementById('user-input').value = '';
+}
 
 function sendMessage() {
     var userMessage = document.getElementById('user-input').value;
     displayMessage('user', userMessage);
+   // Check if voice input is enabled
     if (voiceInputEnabled) {
-                startVoiceInput();
-            }
-
+        startVoiceInput();
+        // Listen for the 'result' event of the SpeechRecognition object
+        recognition.addEventListener('result', function(event) {
+            // Extract the transcript from the event
+            var voiceInput = event.results[0][0].transcript;
+            // Display voice input
+            displayMessage('user', voiceInput);
+            // Pass the voice input to the assistant
+            sendToAssistant(voiceInput);
+            // Stop listening for further results
+            recognition.stop();
+        });
+    } else {
+        // If voice input is not enabled, directly send the user's message
+        sendToAssistant(userMessage);
+    }
     fetch('/send_message', {
             method: 'POST',
             headers: {
@@ -149,9 +213,10 @@ function sendMessage() {
             var assistantResponse = data.assistant_response;
             displayMessage('assistant', assistantResponse);
 
+            // Check if an image URL is provided
             var imageUrl = data.image_url;
             if (imageUrl) {
- 
+                // Display the image
                 displayImage(imageUrl);
             }
 
@@ -177,7 +242,6 @@ function displayImage(imageUrl) {
 }
 
 
-
 function toggleImagesVisibility(speaking) {
     var defaultImage = document.getElementById('default-image');
     var speakingImage = document.getElementById('speaking-image');
@@ -200,7 +264,6 @@ function displayMessage(role, content) {
 }
 
 
-
 function toggleVoiceInput() {
             voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
             if (voiceInputEnabled) {
@@ -210,7 +273,6 @@ function toggleVoiceInput() {
             }
         }
 
-
         function startVoiceInput() {
             recognition.start();
         }
@@ -219,6 +281,46 @@ function toggleVoiceInput() {
             recognition.stop();
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            // Call initializeSpeechRecognition function when the DOM is fully loaded
+            initializeSpeechRecognition();
+        });
+        
+        function initializeSpeechRecognition() {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.error('Speech recognition not supported');
+                return;
+            }
+        
+            var recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+        
+            recognition.onstart = function() {
+                document.getElementById('pushToTalk').textContent = 'Listening...';
+            };
+        
+            recognition.onresult = function(event) {
+                const voiceResult = event.results[0][0].transcript.toLowerCase();
+                console.log('Voice Input:', voiceResult);
+                
+                const searchQuery = encodeURI(voiceResult);
+                const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+                window.open(searchUrl, '_blank');
+                document.getElementById('searchResults').innerHTML = `Searching for: ${voiceResult}`;
+                document.getElementById('pushToTalk').textContent = 'Push to Talk';
+            };
+        
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error detected:', event.error);
+                document.getElementById('pushToTalk').textContent = 'Push to Talk';
+            };
+        
+            document.getElementById('pushToTalk').addEventListener('click', function() {
+                recognition.start();
+            });
+        }
+        
 
 
 function stopTTS() {
@@ -237,9 +339,8 @@ document.getElementById('image-input').addEventListener('change', function (even
 });
 
     </script>
+    
 
 </body>
 
 </html>
-
-
