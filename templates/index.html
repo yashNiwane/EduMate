@@ -42,16 +42,16 @@
   background-color: #008000; /* Green for active state */
 }
 
-#pushToTalk {
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    margin-bottom: 10px;
-
+ #pushToTalk {
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+ }
     </style>
 </head>
 
@@ -264,22 +264,49 @@ function displayMessage(role, content) {
 }
 
 
+let recognition = new webkitSpeechRecognition();
+recognition.lang = 'en-US';
+
+recognition.onresult = function(event) {
+    let transcript = event.results[0][0].transcript;
+    sendVoiceMessage(transcript);
+};
+
 function toggleVoiceInput() {
-            voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
-            if (voiceInputEnabled) {
-                startVoiceInput();
-            } else {
-                stopVoiceInput();
-            }
-        }
+    voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
+    if (voiceInputEnabled) {
+        startVoiceInput();
+    } else {
+        stopVoiceInput();
+    }
+}
 
-        function startVoiceInput() {
-            recognition.start();
-        }
+function startVoiceInput() {
+    recognition.start();
+}
 
-        function stopVoiceInput() {
-            recognition.stop();
-        }
+function stopVoiceInput() {
+    recognition.stop();
+}
+
+function sendVoiceMessage(message) {
+    let formData = new FormData();
+    formData.append('user_message', message);
+
+    fetch('/send_message', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the response from the server
+        console.log(data);
+    })
+    .catch(error => {
+        // Handle errors
+        console.error('Error:', error);
+    });
+}
 
         document.addEventListener('DOMContentLoaded', function() {
             // Call initializeSpeechRecognition function when the DOM is fully loaded
