@@ -11,35 +11,35 @@
 
     <style>
       #voice-input-checkbox {
-  /* Hide the default checkbox appearance */
+  
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
 
-  /* Style the button */
-  width: 40px;  /* Adjust width as needed */
-  height: 40px; /* Adjust height as needed */
+  
+  width: 40px;  
+  height: 40px; 
   border: 2px solid #ccc;
-  border-radius: 50%; /* Make it circular */
+  border-radius: 50%; 
   background-color: #fff;
   cursor: pointer;
 
-  /* Add a microphone icon */
-  background-image: url("microphone-icon.png"); /* Replace with your icon path */
+
+  background-image: url("microphone-icon.png");
   background-repeat: no-repeat;
   background-position: center;
 
-  /* Transition for smooth hover effect */
+
   transition: background-color 0.2s ease-in-out;
 }
 
 #voice-input-checkbox:hover {
-  background-color: #ddd; /* Highlight on hover */
+  background-color: #ddd; 
 }
 
 #voice-input-checkbox:checked {
-  /* Optional: Style for checked state */
-  background-color: #008000; /* Green for active state */
+ 
+  background-color: #008000; 
 }
 
  #pushToTalk {
@@ -65,22 +65,22 @@
     background-color: #fff;
     cursor: pointer;
   
-    /* Add a microphone icon */
-    background-image: url("{{ url_for('static', filename='mic.svg') }}"); /* Replace with your icon path */
+  
+    background-image: url("{{ url_for('static', filename='mic.svg') }}"); 
     background-repeat: no-repeat;
     background-position: center;
   
-    /* Transition for smooth hover effect */
+
     transition: background-color 0.2s ease-in-out;
   }
   
   #voice-input-checkbox:hover {
-    background-color: #918f8f; /* Highlight on hover */
+    background-color: #918f8f; 
   }
   
   #voice-input-checkbox:checked {
-    /* Optional: Style for checked state */
-    background-color: #008000; /* Green for active state */
+    
+    background-color: #008000; 
   }
   
   #pushToTalk {
@@ -129,21 +129,12 @@
     {% if image_url %}
     <img src="{{ image_url }}" alt="Search Result">
     {% endif %}
-        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 400px; right: -30%; top: 40%">
+        <img id="default-image" src="{{url_for('static', filename='still.gif')}}" alt="Default Image" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 500px; right: -30%; top: 50%">
     
         <img id="speaking-image" src="{{url_for('static', filename='talking.gif')}}" alt="Speaking Image"
-            class="hidden" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 400px; right: -30%; top: 40%">
+            class="hidden" style="width: 120%; height: 120%; object-fit: contain; position: absolute; height: 600px; right: -30%; top: 50%">
     </div>
     
-
-
-
-
-
-
-
-
-
     <script>
         var ttsPlaying = false;
         var voiceInputEnabled = false;
@@ -279,8 +270,6 @@ function displayImage(imageUrl) {
     var imageContainer = document.getElementById('image-container');
     imageContainer.innerHTML = `<img src="${imageUrl}" alt="Physics Image" style="max-width: 100%; max-height: 100%;">`;
 }
-
-
 function toggleImagesVisibility(speaking) {
     var defaultImage = document.getElementById('default-image');
     var speakingImage = document.getElementById('speaking-image');

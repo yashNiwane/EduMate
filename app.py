@@ -35,8 +35,8 @@ def send_message():
         user_message_data = [{"type": "text", "text": user_message}]
 
     chat_history.append({"role": "user", "content": user_message_data})
-    if user_message.strip():  # Check if user's message contains any non-empty string
-        query = user_message.strip()  # Extract query from user's message
+    if user_message.strip():  
+        query = user_message.strip()  
         image_url = perform_image_search(query)
     else:
         image_url = None
@@ -72,14 +72,14 @@ def perform_image_search(query):
 @app.route('/process_image', methods=['POST'])
 def process_image():
 
-        # Read the image and question from the form
+        
         image = request.files['image'].read()
         question = request.form['question']
         base64_image = base64.b64encode(image).decode("utf-8")
 
-        # Make a request to OpenAI
+        
         completion = openai_client.chat.completions.create(
-            model="local-model",  # not used
+            model="local-model",
             messages=[
                 {
                     "role": "system",
