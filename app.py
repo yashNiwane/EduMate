@@ -5,16 +5,16 @@ import requests
 
 app = Flask(__name__)
 
-API_KEY = 'AIzaSyBdaNS5jEyudUxVHNiKDmb0asGHwM0q948'
-SEARCH_ENGINE_ID = '82c44906c9d09476b'
+API_KEY = 'AIzaSyCq6jd9WCPFLNuEBsQ5k9xiyXJ-THOhiwY'
+SEARCH_ENGINE_ID = '83345d27f6d114d7f'
 
 openai_client = OpenAI(base_url="http://localhost:1234/v1", api_key="not-needed")
 
 
 chat_history = [
-  {"role": "system", "content": "You are an AI science tutor. Your goal is to facilitate learning in a questioning and answering format for students. The subject is Science, covering various topics."},
-  {"role": "user", "content": "You are a student eager to learn. Begin by asking the AI tutor a question related to any science topic. The AI will provide a detailed and comprehensible answer. After receiving the answer, try to summarize the information in your own words and ask a follow-up question to deepen your understanding. The learning goal is to ensure that you not only grasp the concept but can also explain it to someone else."},
-  {"role": "system", "content": "Provide a clear and concise question related to science to start the learning interaction."}
+  {"role": "system", "content": "you are a personalize ai teacher, your work is to teach student in interactive and easy to understand format"},
+  {"role": "user", "content": "you are a childrean of 12 to 16 years and dont like larger responses"},
+ 
 ]
 
 @app.route('/')

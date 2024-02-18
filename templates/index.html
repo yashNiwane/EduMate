@@ -50,8 +50,49 @@
         color: #fff;
         border: none;
         border-radius: 5px;
-        margin-bottom: 10px;
+       
  }
+ #voice-input-checkbox {
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  
+    width: 64px;  
+    height: 64px; 
+    border: 2px solid #ccc;
+    border-radius: 50%; 
+    background-color: #fff;
+    cursor: pointer;
+  
+    /* Add a microphone icon */
+    background-image: url("{{ url_for('static', filename='mic.svg') }}"); /* Replace with your icon path */
+    background-repeat: no-repeat;
+    background-position: center;
+  
+    /* Transition for smooth hover effect */
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  #voice-input-checkbox:hover {
+    background-color: #918f8f; /* Highlight on hover */
+  }
+  
+  #voice-input-checkbox:checked {
+    /* Optional: Style for checked state */
+    background-color: #008000; /* Green for active state */
+  }
+  
+  #pushToTalk {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
     </style>
 </head>
 
@@ -71,13 +112,11 @@
             <div>
                 <button onclick="sendMessage()"
                 class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-r-md" style="border: 1px solid grey;">Send</button>
-                
-               
-
             </div>
             <div>
                 <button id="pushToTalk">mic</button>
-                <input type="checkbox" style="margin-left: 5px;" id="voice-input-checkbox" onchange="toggleVoiceInput()"></div>
+                </div>
+                <input type="checkbox" style="margin-left: 5px;" id="voice-input-checkbox" onchange="toggleVoiceInput()">
         </div>
     </div>
     
@@ -264,49 +303,22 @@ function displayMessage(role, content) {
 }
 
 
-let recognition = new webkitSpeechRecognition();
-recognition.lang = 'en-US';
-
-recognition.onresult = function(event) {
-    let transcript = event.results[0][0].transcript;
-    sendVoiceMessage(transcript);
-};
-
 function toggleVoiceInput() {
-    voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
-    if (voiceInputEnabled) {
-        startVoiceInput();
-    } else {
-        stopVoiceInput();
-    }
-}
+            voiceInputEnabled = document.getElementById('voice-input-checkbox').checked;
+            if (voiceInputEnabled) {
+                startVoiceInput();
+            } else {
+                stopVoiceInput();
+            }
+        }
 
-function startVoiceInput() {
-    recognition.start();
-}
+        function startVoiceInput() {
+            recognition.start();
+        }
 
-function stopVoiceInput() {
-    recognition.stop();
-}
-
-function sendVoiceMessage(message) {
-    let formData = new FormData();
-    formData.append('user_message', message);
-
-    fetch('/send_message', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Handle the response from the server
-        console.log(data);
-    })
-    .catch(error => {
-        // Handle errors
-        console.error('Error:', error);
-    });
-}
+        function stopVoiceInput() {
+            recognition.stop();
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             // Call initializeSpeechRecognition function when the DOM is fully loaded
