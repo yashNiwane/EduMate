@@ -33,3 +33,6 @@ This project leverages AI technology to create a personalized education assistan
 3. **Run:**
    ```bash
    python app.py
+
+4. **Enjoy the Interface**
+   you have to install and run lm studio server in order to use features of this page
